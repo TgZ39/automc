@@ -25,9 +25,23 @@ impl ServerInfo {
 
         let version_list = get_versions(distribution).await?;
 
-        let mut options = version_list.versions;
-        options.reverse();
-        let version = Select::new("Select version", options).prompt()?;
+        let version = match distribution {
+            Distribution::Paper | Distribution::Folia => {
+                let mut options = version_list.version_groups.clone();
+                options.reverse();
+                let group = Select::new("Select version group", options).prompt()?;
+
+                let mut options = version_list.versions.clone();
+                options.retain(|v| v.starts_with(&group));
+                options.reverse();
+                Select::new("Select version", options).prompt()?
+            }
+            Distribution::Velocity => {
+                let mut options = version_list.versions.clone();
+                options.reverse();
+                Select::new("Select version", options).prompt()?
+            }
+        };
 
         let build_list = get_builds(distribution, &version).await?;
         let options = build_list
