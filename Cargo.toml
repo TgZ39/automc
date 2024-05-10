@@ -1,10 +1,10 @@
 [package]
 name = "automc"
-version = "0.0.2"
+version = "0.1.0"
 edition = "2021"
 license = "GPL-3"
 description = "A CLI tool for installing Minecraft server software"
-repository = "https://www.github.com/auto-mc"
+repository = "https://www.github.com/TgZ39/automc"
 categories = ["command-line-utilities"]
 keywords = ["minecraft", "minecraft-server"]
 
