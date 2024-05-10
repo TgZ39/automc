@@ -23,13 +23,9 @@ impl ServerInfo {
         let options = Distribution::iter().collect();
         let distribution = Select::new("Select distribution", options).prompt()?;
 
-        let mut version_list = get_versions(distribution).await?;
-
-        version_list.version_groups.reverse();
-        let group = Select::new("Select version group", version_list.version_groups).prompt()?;
+        let version_list = get_versions(distribution).await?;
 
         let mut options = version_list.versions;
-        options.retain(|v| v.starts_with(&group));
         options.reverse();
         let version = Select::new("Select version", options).prompt()?;
 
@@ -62,6 +58,7 @@ impl ServerInfo {
 pub enum Distribution {
     Paper,
     Folia,
+    Velocity,
 }
 
 #[derive(Deserialize, Debug)]
