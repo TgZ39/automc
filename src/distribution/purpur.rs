@@ -3,6 +3,7 @@ use crate::error::*;
 use inquire::Select;
 use serde::Deserialize;
 use std::path::PathBuf;
+use spinners::{Spinner, Spinners};
 
 pub struct Purpur {
     version: String,
@@ -10,7 +11,9 @@ pub struct Purpur {
 
 impl Purpur {
     pub async fn new() -> Result<Self> {
+        let mut sp = Spinner::new(Spinners::Dots, "Downloading metadata".into());
         let version_list = Self::get_versions().await?;
+        sp.stop_and_persist("✔", "Finished downloading metadata".into());
 
         let mut options = version_list.versions;
         options.reverse();

@@ -1,9 +1,11 @@
 use crate::distribution::{download_file, install_eula, install_server_jar};
 use crate::error::*;
-use inquire::Select;
+use futures_util::future::join3;
+use inquire::{Confirm, Select};
 use serde::Deserialize;
 use std::fmt::{Display, Formatter};
 use std::path::PathBuf;
+use spinners::{Spinner, Spinners};
 
 pub struct Fabric {
     version: String,
@@ -13,16 +15,50 @@ pub struct Fabric {
 
 impl Fabric {
     pub async fn new() -> Result<Self> {
-        let version_list = Self::get_versions().await?;
-        let options = version_list.versions.clone();
+        let mut sp = Spinner::new(Spinners::Dots, "Downloading metadata".into());
+        let (version_list, installer_list, loader_list) = join3(
+            Self::get_versions(),
+            Self::get_installers(),
+            Self::get_loaders(),
+        ).await;
+        let (version_list, installer_list, loader_list) =
+            (version_list?, installer_list?, loader_list?);
+        sp.stop_and_persist("✔", "Finished downloading metadata".into());
+
+        let options = {
+            let mut out = version_list.versions;
+            if Confirm::new("Only stable versions?")
+                .with_default(true)
+                .prompt()?
+            {
+                out.retain(|v| v.stable);
+            }
+            out
+        };
         let version = Select::new("Select version", options).prompt()?;
 
-        let loader_list = Self::get_loaders().await?;
-        let options = loader_list;
+        let options = {
+            let mut out = loader_list;
+            if Confirm::new("Only stable loaders?")
+                .with_default(true)
+                .prompt()?
+            {
+                out.retain(|l| l.stable);
+            }
+            out
+        };
         let loader = Select::new("Select loader", options).prompt()?;
 
-        let installer_list = Self::get_installers().await?;
-        let options = installer_list;
+        let options = {
+            let mut out = installer_list;
+            if Confirm::new("Only stable installers?")
+                .with_default(true)
+                .prompt()?
+            {
+                out.retain(|i| i.stable);
+            }
+            out
+        };
         let installer = Select::new("Select installer", options).prompt()?;
 
         Ok(Self {

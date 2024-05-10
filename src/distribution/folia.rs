@@ -4,6 +4,7 @@ use inquire::Select;
 use itertools::Itertools;
 use serde::Deserialize;
 use std::path::PathBuf;
+use spinners::{Spinner, Spinners};
 use strum::Display;
 
 pub struct Folia {
@@ -13,7 +14,9 @@ pub struct Folia {
 
 impl Folia {
     pub async fn new() -> Result<Self> {
+        let mut sp = Spinner::new(Spinners::Dots, "Downloading metadata".into());
         let version_list = Self::get_versions().await?;
+        sp.stop_and_persist("✔", "Finished downloading metadata".into());
 
         let mut options = version_list.version_groups;
         options.reverse();
@@ -24,7 +27,9 @@ impl Folia {
         options.reverse();
         let version = Select::new("Select version", options).prompt()?;
 
+        let mut sp = Spinner::new(Spinners::Dots, "Downloading build metadata".into());
         let build_list = Self::get_builds(&version).await?;
+        sp.stop_and_persist("✔", "Finished downloading build metadata".into());
 
         let options = build_list
             .builds

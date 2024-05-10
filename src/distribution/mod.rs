@@ -53,7 +53,7 @@ pub async fn download_file(url: &str) -> Result<Bytes> {
     } else {
         let mut sp = Spinner::new(Spinners::Dots, "Downloading server.jar".into());
         let content = req.bytes().await?;
-        sp.stop_with_newline();
+        sp.stop_and_persist("✔", "Finished downloading server.jar".into());
 
         Ok(content)
     }
