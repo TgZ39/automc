@@ -1,6 +1,6 @@
 use crate::distribution::*;
 use error::*;
-use inquire::{Select, Text};
+use inquire::{Confirm, Select, Text};
 use std::path::PathBuf;
 use strum::IntoEnumIterator;
 
@@ -14,6 +14,13 @@ async fn main() -> Result<()> {
 
     let options = Distribution::iter().collect();
     let distribution = Select::new("Select distribution", options).prompt()?;
+
+    if !Confirm::new("Do you accept the EULA? (https://www.minecraft.net/eula)")
+        .with_default(true)
+        .prompt()?
+    {
+        return Ok(());
+    }
 
     match distribution {
         Distribution::Paper => Paper::new().await?.install(&dir).await?,

@@ -10,4 +10,5 @@ pub enum Error {
     Io(#[from] io::Error),
     Inquire(#[from] inquire::InquireError),
     SerdeJson(#[from] serde_json::Error),
+    Other(String),
 }

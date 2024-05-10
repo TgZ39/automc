@@ -1,10 +1,11 @@
-use crate::distribution::{download_file, install_eula, install_server_jar};
+use crate::distribution::{download_file, install_eula, install_server_jar, install_start};
 use crate::error::*;
+use futures_util::future::join3;
 use inquire::Select;
 use itertools::Itertools;
 use serde::Deserialize;
-use std::path::PathBuf;
 use spinners::{Spinner, Spinners};
+use std::path::PathBuf;
 use strum::Display;
 
 pub struct Folia {
@@ -76,8 +77,15 @@ impl Folia {
         );
         let content = download_file(&url).await?;
 
-        install_server_jar(path, &content).await?;
-        install_eula(path).await?;
+        let res = join3(
+            install_server_jar(path, &content),
+            install_eula(path),
+            install_start(path),
+        )
+        .await;
+        res.0?;
+        res.1?;
+        res.2?;
 
         Ok(())
     }

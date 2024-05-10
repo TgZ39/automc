@@ -1,11 +1,11 @@
-use crate::distribution::{download_file, install_eula, install_server_jar};
+use crate::distribution::{download_file, install_eula, install_server_jar, install_start};
 use crate::error::*;
 use futures_util::future::join3;
 use inquire::{Confirm, Select};
 use serde::Deserialize;
+use spinners::{Spinner, Spinners};
 use std::fmt::{Display, Formatter};
 use std::path::PathBuf;
-use spinners::{Spinner, Spinners};
 
 pub struct Fabric {
     version: String,
@@ -16,13 +16,13 @@ pub struct Fabric {
 impl Fabric {
     pub async fn new() -> Result<Self> {
         let mut sp = Spinner::new(Spinners::Dots, "Downloading metadata".into());
-        let (version_list, installer_list, loader_list) = join3(
+        let lists = join3(
             Self::get_versions(),
             Self::get_installers(),
             Self::get_loaders(),
-        ).await;
-        let (version_list, installer_list, loader_list) =
-            (version_list?, installer_list?, loader_list?);
+        )
+        .await;
+        let (version_list, installer_list, loader_list) = (lists.0?, lists.1?, lists.2?);
         sp.stop_and_persist("✔", "Finished downloading metadata".into());
 
         let options = {
@@ -99,8 +99,15 @@ impl Fabric {
         );
         let content = download_file(&url).await?;
 
-        install_server_jar(path, &content).await?;
-        install_eula(path).await?;
+        let res = join3(
+            install_server_jar(path, &content),
+            install_eula(path),
+            install_start(path),
+        )
+        .await;
+        res.0?;
+        res.1?;
+        res.2?;
 
         Ok(())
     }

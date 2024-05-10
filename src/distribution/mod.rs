@@ -82,3 +82,22 @@ pub async fn install_server_jar(path: &PathBuf, bytes: &Bytes) -> Result<()> {
 
     Ok(())
 }
+
+pub async fn install_start(path: &PathBuf) -> Result<()> {
+    let mut path = path.to_owned();
+
+    if cfg!(windows) {
+        path.push("start.bat");
+        let mut file = File::create(path).await?;
+        file.write_all(b"java -jar server.jar -nogui").await?;
+    } else if cfg!(unix) {
+        path.push("start.sh");
+        let mut file = File::create(path).await?;
+        file.write_all(b"#!/usr/bin/env sh\njava -jar server.jar -nogui")
+            .await?;
+    } else {
+        return Err(Error::Other("unsupported OS".to_string()));
+    }
+
+    Ok(())
+}
