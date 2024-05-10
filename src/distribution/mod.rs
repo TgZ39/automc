@@ -5,6 +5,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use serde::Deserialize;
 use spinners::{Spinner, Spinners};
 use std::fs;
+use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use strum::{Display, EnumIter};
 use tokio::fs::File;
@@ -95,7 +96,7 @@ pub async fn install_start_script(path: &PathBuf, java_path: &Path) -> Result<()
         .await?;
     } else if cfg!(unix) {
         path.push("start.sh");
-        let mut file = File::create(path).await?;
+        let mut file = File::create(&path).await?;
         file.write_all(
             format!(
                 "#!/usr/bin/env sh\n{} -jar server.jar -nogui",
@@ -104,6 +105,10 @@ pub async fn install_start_script(path: &PathBuf, java_path: &Path) -> Result<()
             .as_bytes(),
         )
         .await?;
+
+        let mut perms = file.metadata().await?.permissions();
+        perms.set_mode(0o755); // same as chmod +x
+        fs::set_permissions(path, perms)?;
     } else {
         return Err(Error::Other("unsupported OS".to_string()));
     }
