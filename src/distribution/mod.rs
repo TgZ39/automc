@@ -5,7 +5,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use serde::Deserialize;
 use spinners::{Spinner, Spinners};
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use strum::{Display, EnumIter};
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
@@ -83,18 +83,27 @@ pub async fn install_server_jar(path: &PathBuf, bytes: &Bytes) -> Result<()> {
     Ok(())
 }
 
-pub async fn install_start(path: &PathBuf) -> Result<()> {
+pub async fn install_start_script(path: &PathBuf, java_path: &Path) -> Result<()> {
     let mut path = path.to_owned();
 
     if cfg!(windows) {
         path.push("start.bat");
         let mut file = File::create(path).await?;
-        file.write_all(b"java -jar server.jar -nogui").await?;
+        file.write_all(
+            format!("\"{}\" -jar server.jar -nogui", java_path.to_str().unwrap()).as_bytes(),
+        )
+        .await?;
     } else if cfg!(unix) {
         path.push("start.sh");
         let mut file = File::create(path).await?;
-        file.write_all(b"#!/usr/bin/env sh\njava -jar server.jar -nogui")
-            .await?;
+        file.write_all(
+            format!(
+                "#!/usr/bin/env sh\n{} -jar server.jar -nogui",
+                java_path.to_str().unwrap()
+            )
+            .as_bytes(),
+        )
+        .await?;
     } else {
         return Err(Error::Other("unsupported OS".to_string()));
     }

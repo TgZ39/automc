@@ -1,4 +1,4 @@
-use crate::distribution::{download_file, install_eula, install_server_jar, install_start};
+use crate::distribution::{download_file, install_server_jar};
 use crate::error::*;
 use futures_util::future::join3;
 use inquire::{Confirm, Select};
@@ -99,15 +99,7 @@ impl Fabric {
         );
         let content = download_file(&url).await?;
 
-        let res = join3(
-            install_server_jar(path, &content),
-            install_eula(path),
-            install_start(path),
-        )
-        .await;
-        res.0?;
-        res.1?;
-        res.2?;
+        install_server_jar(path, &content).await?;
 
         Ok(())
     }
