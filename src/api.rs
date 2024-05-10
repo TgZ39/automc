@@ -57,7 +57,7 @@ pub async fn download(distribution: Distribution, version: &str, build: i64) -> 
     let pb = ProgressBar::new(file_size);
     pb.set_style(ProgressStyle::with_template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})")
         .unwrap()
-        .progress_chars("#>-"));
+        .progress_chars("== "));
 
     let mut content = Vec::with_capacity(file_size as usize);
 
