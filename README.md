@@ -1,13 +1,22 @@
-About
+[![Crates.io Version](https://img.shields.io/crates/v/automc)](https://crates.io/crates/automc)
+[![Crates.io License](https://img.shields.io/crates/l/automc)](./LICENSE)
 ---
 
+About
+---
 Auto-mc is a small CLI application written in rust
-that downloads Minecraft server software automatically.
+that downloads and installs Minecraft server software automatically.
+
+Installation
+---
+Run
+```shell
+cargo install automc
+```
 
 Usage
 ---
-
-Just double-click the executable.
+Open a terminal and run `automc`.
 
 License
 ---
