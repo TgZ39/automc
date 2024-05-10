@@ -1,8 +1,8 @@
+use crate::distribution::download_file;
+use crate::error::*;
 use bytes::Bytes;
 use inquire::Select;
 use serde::Deserialize;
-use crate::distribution::download_file;
-use crate::error::*;
 
 pub struct Purpur {
     version: String,
@@ -16,9 +16,7 @@ impl Purpur {
         options.reverse();
         let version = Select::new("Select version", options).prompt()?;
 
-        Ok(Self {
-            version,
-        })
+        Ok(Self { version })
     }
 
     async fn get_versions() -> Result<VersionList> {
@@ -40,5 +38,5 @@ impl Purpur {
 
 #[derive(Deserialize)]
 struct VersionList {
-    versions: Vec<String>
+    versions: Vec<String>,
 }

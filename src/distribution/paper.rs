@@ -1,14 +1,14 @@
+use crate::distribution::download_file;
+use crate::error::*;
 use bytes::Bytes;
 use inquire::Select;
 use itertools::Itertools;
 use serde::Deserialize;
 use strum::Display;
-use crate::distribution::download_file;
-use crate::error::*;
 
 pub struct Paper {
     version: String,
-    build_id: i64
+    build_id: i64,
 }
 
 impl Paper {
@@ -40,10 +40,7 @@ impl Paper {
             .unwrap()
             .build_id;
 
-        Ok(Self {
-            version,
-            build_id
-        })
+        Ok(Self { version, build_id })
     }
 
     async fn get_versions() -> Result<VersionList> {
@@ -67,16 +64,10 @@ impl Paper {
     }
 
     pub async fn download(&self) -> Result<Bytes> {
-        let jar_name = format!(
-            "paper-{}-{}.jar",
-            self.version,
-            self.build_id
-        );
+        let jar_name = format!("paper-{}-{}.jar", self.version, self.build_id);
         let url = format!(
             "https://api.papermc.io/v2/projects/paper/versions/{}/builds/{}/downloads/{}",
-            self.version,
-            self.build_id,
-            jar_name
+            self.version, self.build_id, jar_name
         );
         download_file(&url).await
     }
@@ -85,7 +76,7 @@ impl Paper {
 #[derive(Deserialize)]
 struct VersionList {
     version_groups: Vec<String>,
-    versions: Vec<String>
+    versions: Vec<String>,
 }
 
 #[derive(Deserialize, Debug)]

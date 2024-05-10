@@ -1,27 +1,29 @@
+use crate::error::*;
 use bytes::Bytes;
 use futures_util::StreamExt;
 use indicatif::{ProgressBar, ProgressStyle};
 use serde::Deserialize;
 use strum::{Display, EnumIter};
-use crate::error::*;
 
-pub use paper::Paper;
+pub use fabric::Fabric;
 pub use folia::Folia;
-pub use velocity::Velocity;
+pub use paper::Paper;
 pub use purpur::Purpur;
+pub use velocity::Velocity;
 
-pub mod paper;
-pub mod folia;
-pub mod velocity;
-pub mod purpur;
 pub mod fabric;
+pub mod folia;
+pub mod paper;
+pub mod purpur;
+pub mod velocity;
 
 #[derive(Debug, Display, Deserialize, EnumIter, Copy, Clone)]
 pub enum Distribution {
     Paper,
     Folia,
     Velocity,
-    Purpur
+    Purpur,
+    Fabric,
 }
 
 pub async fn download_file(url: &str) -> Result<Bytes> {

@@ -1,3 +1,4 @@
+use crate::distribution::*;
 use error::*;
 use inquire::{Select, Text};
 use std::fs::File;
@@ -6,10 +7,9 @@ use std::path::PathBuf;
 use std::str::FromStr;
 use strum::IntoEnumIterator;
 use tokio::fs;
-use crate::distribution::*;
 
-mod error;
 pub mod distribution;
+mod error;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -20,18 +20,11 @@ async fn main() -> Result<()> {
     let distribution = Select::new("Select distribution", options).prompt()?;
 
     let content = match distribution {
-        Distribution::Paper => {
-            Paper::new().await?.download().await?
-        }
-        Distribution::Folia => {
-            Folia::new().await?.download().await?
-        }
-        Distribution::Velocity => {
-            Velocity::new().await?.download().await?
-        }
-        Distribution::Purpur => {
-            Purpur::new().await?.download().await?
-        }
+        Distribution::Paper => Paper::new().await?.download().await?,
+        Distribution::Folia => Folia::new().await?.download().await?,
+        Distribution::Velocity => Velocity::new().await?.download().await?,
+        Distribution::Purpur => Purpur::new().await?.download().await?,
+        Distribution::Fabric => Fabric::new().await?.download().await?,
     };
 
     fs::create_dir_all(&directory).await?;
