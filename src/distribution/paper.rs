@@ -1,9 +1,9 @@
-use crate::distribution::download_file;
+use crate::distribution::{download_file, install_eula, install_server_jar};
 use crate::error::*;
-use bytes::Bytes;
 use inquire::Select;
 use itertools::Itertools;
 use serde::Deserialize;
+use std::path::PathBuf;
 use strum::Display;
 
 pub struct Paper {
@@ -63,13 +63,18 @@ impl Paper {
         Ok(builds)
     }
 
-    pub async fn download(&self) -> Result<Bytes> {
+    pub async fn install(&self, path: &PathBuf) -> Result<()> {
         let jar_name = format!("paper-{}-{}.jar", self.version, self.build_id);
         let url = format!(
             "https://api.papermc.io/v2/projects/paper/versions/{}/builds/{}/downloads/{}",
             self.version, self.build_id, jar_name
         );
-        download_file(&url).await
+        let content = download_file(&url).await?;
+
+        install_server_jar(path, &content).await?;
+        install_eula(path).await?;
+
+        Ok(())
     }
 }
 

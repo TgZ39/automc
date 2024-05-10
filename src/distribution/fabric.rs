@@ -1,9 +1,9 @@
+use crate::distribution::{download_file, install_eula, install_server_jar};
 use crate::error::*;
-use bytes::Bytes;
 use inquire::Select;
 use serde::Deserialize;
-use spinners::{Spinner, Spinners};
 use std::fmt::{Display, Formatter};
+use std::path::PathBuf;
 
 pub struct Fabric {
     version: String,
@@ -56,18 +56,17 @@ impl Fabric {
         Ok(ver)
     }
 
-    pub async fn download(&self) -> Result<Bytes> {
+    pub async fn install(&self, path: &PathBuf) -> Result<()> {
         let url = format!(
             "https://meta.fabricmc.net/v2/versions/loader/{}/{}/{}/server/jar",
             self.version, self.loader, self.installer
         );
-        let req = reqwest::get(url).await?;
+        let content = download_file(&url).await?;
 
-        let mut sp = Spinner::new(Spinners::Dots, "Downloading server.jar".into());
-        let content = req.bytes().await?;
-        sp.stop_with_newline();
+        install_server_jar(path, &content).await?;
+        install_eula(path).await?;
 
-        Ok(content)
+        Ok(())
     }
 }
 

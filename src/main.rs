@@ -1,43 +1,42 @@
 use crate::distribution::*;
 use error::*;
+use inquire::validator::Validation;
 use inquire::{Select, Text};
-use std::fs::File;
-use std::io::Write;
 use std::path::PathBuf;
 use std::str::FromStr;
 use strum::IntoEnumIterator;
-use tokio::fs;
 
 pub mod distribution;
 mod error;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let directory = Text::new("Select directory").prompt()?;
-    let directory = PathBuf::from_str(&directory)?;
+    let validator = |path: &str| {
+        if let Ok(path) = PathBuf::from_str(path) {
+            if path.is_dir() {
+                Ok(Validation::Valid)
+            } else {
+                Ok(Validation::Invalid("Path must be a directory".into()))
+            }
+        } else {
+            Ok(Validation::Invalid("Input must be a path".into()))
+        }
+    };
+    let directory = Text::new("Select directory")
+        .with_validator(validator)
+        .prompt()?;
+    let dir = PathBuf::from_str(&directory)?;
 
     let options = Distribution::iter().collect();
     let distribution = Select::new("Select distribution", options).prompt()?;
 
-    let content = match distribution {
-        Distribution::Paper => Paper::new().await?.download().await?,
-        Distribution::Folia => Folia::new().await?.download().await?,
-        Distribution::Velocity => Velocity::new().await?.download().await?,
-        Distribution::Purpur => Purpur::new().await?.download().await?,
-        Distribution::Fabric => Fabric::new().await?.download().await?,
+    match distribution {
+        Distribution::Paper => Paper::new().await?.install(&dir).await?,
+        Distribution::Folia => Folia::new().await?.install(&dir).await?,
+        Distribution::Velocity => Velocity::new().await?.install(&dir).await?,
+        Distribution::Purpur => Purpur::new().await?.install(&dir).await?,
+        Distribution::Fabric => Fabric::new().await?.install(&dir).await?,
     };
-
-    fs::create_dir_all(&directory).await?;
-
-    let mut path = directory.clone();
-    path.push("server.jar");
-    let mut server_jar = File::create(path)?;
-    server_jar.write_all(&content)?;
-
-    let mut path = directory.clone();
-    path.push("eula.txt");
-    let mut eula = File::create(path)?;
-    eula.write_all(b"eula=true")?;
 
     Text::new("Press <ENTER> to exit...").prompt()?;
     Ok(())

@@ -1,8 +1,8 @@
-use crate::distribution::download_file;
+use crate::distribution::{download_file, install_eula, install_server_jar};
 use crate::error::*;
-use bytes::Bytes;
 use inquire::Select;
 use serde::Deserialize;
+use std::path::PathBuf;
 
 pub struct Purpur {
     version: String,
@@ -27,12 +27,17 @@ impl Purpur {
         Ok(ver)
     }
 
-    pub async fn download(&self) -> Result<Bytes> {
+    pub async fn install(&self, path: &PathBuf) -> Result<()> {
         let url = format!(
             "https://api.purpurmc.org/v2/purpur/{}/latest/download",
             self.version,
         );
-        download_file(&url).await
+        let content = download_file(&url).await?;
+
+        install_server_jar(path, &content).await?;
+        install_eula(path).await?;
+
+        Ok(())
     }
 }
 
