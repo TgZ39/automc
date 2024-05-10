@@ -1,3 +1,4 @@
+use std::fs;
 use crate::error::*;
 use std::process::Command;
 
@@ -14,7 +15,23 @@ pub fn installed_versions() -> Result<Vec<String>> {
 
         Ok(versions)
     } else if cfg!(unix) {
-        todo!()
+        let mut versions = Vec::new();
+
+        for entry in fs::read_dir("/usr/lib/jvm")? {
+            let entry = entry?;
+
+            if entry.path().is_dir() && !entry.path().is_symlink() {
+                let mut path = entry.path();
+                path.push("bin");
+                path.push("java");
+                versions.push(path.to_str().unwrap().to_string())
+            }
+        }
+        if versions.is_empty() {
+            return Err(Error::Other("No Java versions where found".to_string()));
+        }
+
+        Ok(versions)
     } else {
         Err(Error::Other("unsupported OS".to_string()))
     };
