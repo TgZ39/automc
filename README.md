@@ -18,6 +18,16 @@ Usage
 ---
 Open a terminal and run `automc`.
 
+**Options:**
+```
+Usage: automc [OPTIONS]
+
+Options:
+  -j, --java-path <JAVA_PATH>  Supply custom Java path
+  -h, --help                   Print help
+  -V, --version                Print version
+```
+
 License
 ---
 This project is licensed under the [GNU General Public License, Version 3.0](https://www.gnu.org/licenses/gpl-3.0).
