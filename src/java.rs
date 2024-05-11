@@ -1,17 +1,20 @@
-use std::fs;
 use crate::error::*;
+use std::fs;
 use std::process::Command;
 
 pub fn installed_versions() -> Result<Vec<String>> {
     return if cfg!(windows) {
         let output = Command::new("where").arg("java").output()?;
-        let versions = output
+        let versions: Vec<_> = output
             .stdout
             .into_iter()
             .fold(String::new(), |acc, c| acc + &(c as char).to_string())
             .split_terminator("\r\n")
             .map(|str| str.to_string())
             .collect();
+        if versions.is_empty() {
+            return Err(Error::Other("No Java versions where found".to_string()));
+        }
 
         Ok(versions)
     } else if cfg!(unix) {
