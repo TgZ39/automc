@@ -14,6 +14,7 @@ pub use fabric::Fabric;
 pub use folia::Folia;
 pub use paper::Paper;
 pub use purpur::Purpur;
+pub use spigot::Spigot;
 pub use vanilla::Vanilla;
 pub use velocity::Velocity;
 
@@ -21,20 +22,22 @@ mod fabric;
 mod folia;
 mod paper;
 mod purpur;
+mod spigot;
 mod vanilla;
 mod velocity;
 
 #[derive(Debug, Display, Deserialize, EnumIter, Copy, Clone)]
 pub enum Distribution {
     Paper,
-    Folia,
-    Velocity,
     Purpur,
+    Velocity,
+    Folia,
+    Spigot,
     Fabric,
     Vanilla,
 }
 
-pub async fn download_file(url: &str) -> Result<Bytes> {
+pub async fn download_file(url: &str, message: &str) -> Result<Bytes> {
     let req = reqwest::get(url).await?.error_for_status()?;
 
     if let Some(file_size) = req.content_length() {
@@ -51,12 +54,12 @@ pub async fn download_file(url: &str) -> Result<Bytes> {
             pb.inc(bytes.len() as u64);
             content.extend(bytes);
         }
-        pb.finish_with_message("{msg} done downloading");
+        pb.finish();
         Ok(Bytes::from(content))
     } else {
-        let mut sp = Spinner::new(Spinners::Dots, "Downloading server.jar".into());
+        let mut sp = Spinner::new(Spinners::Dots, format!("Downloading {}", message));
         let content = req.bytes().await?;
-        sp.stop_and_persist("✔", "Finished downloading server.jar".into());
+        sp.stop_and_persist("✔", format!("Finished downloading {}", message));
 
         Ok(content)
     }
@@ -95,7 +98,7 @@ pub async fn install_start_script(path: &PathBuf, java_path: &Path) -> Result<()
             path.push("start.bat");
             let mut file = File::create(path).await?;
             file.write_all(
-                format!("\"{}\" -jar server.jar -nogui", java_path.to_str().unwrap()).as_bytes(),
+                format!("\"{}\" -jar server.jar", java_path.to_str().unwrap()).as_bytes(),
             )
             .await?;
         }

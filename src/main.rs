@@ -1,6 +1,5 @@
 use crate::args::Args;
 use crate::distribution::*;
-use crate::java::installed_versions;
 use clap::Parser;
 use error::*;
 use inquire::{Confirm, Select, Text};
@@ -30,23 +29,14 @@ async fn main() -> Result<()> {
     }
 
     match distribution {
-        Distribution::Paper => Paper::new().await?.install(&dir).await?,
-        Distribution::Folia => Folia::new().await?.install(&dir).await?,
-        Distribution::Velocity => Velocity::new().await?.install(&dir).await?,
-        Distribution::Purpur => Purpur::new().await?.install(&dir).await?,
-        Distribution::Fabric => Fabric::new().await?.install(&dir).await?,
-        Distribution::Vanilla => Vanilla::new().await?.install(&dir).await?,
+        Distribution::Paper => Paper::new().await?.install(&dir, args).await?,
+        Distribution::Folia => Folia::new().await?.install(&dir, args).await?,
+        Distribution::Velocity => Velocity::new().await?.install(&dir, args).await?,
+        Distribution::Purpur => Purpur::new().await?.install(&dir, args).await?,
+        Distribution::Fabric => Fabric::new().await?.install(&dir, args).await?,
+        Distribution::Vanilla => Vanilla::new().await?.install(&dir, args).await?,
+        Distribution::Spigot => Spigot::new().await?.install(&dir, args).await?,
     };
-    install_eula(&dir).await?;
-
-    let java_path = if let Some(path) = args.java_path {
-        PathBuf::from(&path)
-    } else {
-        let options = installed_versions()?;
-        let java_version = Select::new("Select Java version", options).prompt()?;
-        PathBuf::from(&java_version)
-    };
-    install_start_script(&dir, &java_path).await?;
 
     Text::new("Press <ENTER> to exit...").prompt()?;
     Ok(())

@@ -1,5 +1,7 @@
-use crate::distribution::{download_file, install_server_jar};
+use crate::args::Args;
+use crate::distribution::{download_file, install_eula, install_server_jar, install_start_script};
 use crate::error::*;
+use crate::java::installed_versions;
 use inquire::{Confirm, Select};
 use serde::Deserialize;
 use spinners::{Spinner, Spinners};
@@ -12,7 +14,7 @@ pub struct Vanilla {
 
 impl Vanilla {
     pub async fn new() -> Result<Self> {
-        let mut sp = Spinner::new(Spinners::Dots, "Downloading metadata".into());
+        let mut sp = Spinner::new(Spinners::Dots, "Downloading metadata...".into());
         let version_list = Self::get_versions().await?;
         sp.stop_and_persist("✔", "Finished downloading metadata".into());
 
@@ -28,7 +30,7 @@ impl Vanilla {
         };
         let version = Select::new("Select version", options).prompt()?;
 
-        let mut sp = Spinner::new(Spinners::Dots, "Downloading version info".into());
+        let mut sp = Spinner::new(Spinners::Dots, "Downloading version info...".into());
         let version_info = reqwest::get(version.url).await?.text().await?;
         let url = gjson::get(&version_info, "downloads.server.url")
             .str()
@@ -38,9 +40,19 @@ impl Vanilla {
         Ok(Self { download_url: url })
     }
 
-    pub async fn install(&self, path: &PathBuf) -> Result<()> {
-        let bytes = download_file(&self.download_url).await?;
+    pub async fn install(&self, path: &PathBuf, args: Args) -> Result<()> {
+        let bytes = download_file(&self.download_url, "server.jar").await?;
         install_server_jar(path, &bytes).await?;
+        install_eula(path).await?;
+
+        let java_path = if let Some(path) = args.java_path {
+            PathBuf::from(&path)
+        } else {
+            let options = installed_versions()?;
+            let java_version = Select::new("Select Java version", options).prompt()?;
+            PathBuf::from(&java_version)
+        };
+        install_start_script(path, &java_path).await?;
 
         Ok(())
     }

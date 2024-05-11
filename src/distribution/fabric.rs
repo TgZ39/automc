@@ -1,5 +1,7 @@
-use crate::distribution::{download_file, install_server_jar};
+use crate::args::Args;
+use crate::distribution::{download_file, install_eula, install_server_jar, install_start_script};
 use crate::error::*;
+use crate::java::installed_versions;
 use futures_util::future::join3;
 use inquire::{Confirm, Select};
 use serde::Deserialize;
@@ -92,14 +94,24 @@ impl Fabric {
         Ok(ver)
     }
 
-    pub async fn install(&self, path: &PathBuf) -> Result<()> {
+    pub async fn install(&self, path: &PathBuf, args: Args) -> Result<()> {
         let url = format!(
             "https://meta.fabricmc.net/v2/versions/loader/{}/{}/{}/server/jar",
             self.version, self.loader, self.installer
         );
-        let content = download_file(&url).await?;
+        let content = download_file(&url, "server.jar").await?;
 
         install_server_jar(path, &content).await?;
+        install_eula(path).await?;
+
+        let java_path = if let Some(path) = args.java_path {
+            PathBuf::from(&path)
+        } else {
+            let options = installed_versions()?;
+            let java_version = Select::new("Select Java version", options).prompt()?;
+            PathBuf::from(&java_version)
+        };
+        install_start_script(path, &java_path).await?;
 
         Ok(())
     }

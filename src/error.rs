@@ -10,5 +10,6 @@ pub enum Error {
     Io(#[from] io::Error),
     Inquire(#[from] inquire::InquireError),
     SerdeJson(#[from] serde_json::Error),
+    Encoding(#[from] std::string::FromUtf8Error),
     Other(String),
 }
