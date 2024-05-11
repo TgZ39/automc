@@ -5,7 +5,6 @@ use indicatif::{ProgressBar, ProgressStyle};
 use serde::Deserialize;
 use spinners::{Spinner, Spinners};
 use std::fs;
-use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use strum::{Display, EnumIter};
 use tokio::fs::File;
@@ -91,27 +90,34 @@ pub async fn install_start_script(path: &PathBuf, java_path: &Path) -> Result<()
     let mut path = path.to_owned();
 
     if cfg!(windows) {
-        path.push("start.bat");
-        let mut file = File::create(path).await?;
-        file.write_all(
-            format!("\"{}\" -jar server.jar -nogui", java_path.to_str().unwrap()).as_bytes(),
-        )
-        .await?;
-    } else if cfg!(unix) {
-        path.push("start.sh");
-        let mut file = File::create(&path).await?;
-        file.write_all(
-            format!(
-                "#!/usr/bin/env sh\n{} -jar server.jar -nogui",
-                java_path.to_str().unwrap()
+        #[cfg(target_os = "windows")]
+        {
+            path.push("start.bat");
+            let mut file = File::create(path).await?;
+            file.write_all(
+                format!("\"{}\" -jar server.jar -nogui", java_path.to_str().unwrap()).as_bytes(),
             )
-            .as_bytes(),
-        )
-        .await?;
+            .await?;
+        }
+    } else if cfg!(unix) {
+        #[cfg(target_os = "linux")]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            path.push("start.sh");
+            let mut file = File::create(&path).await?;
+            file.write_all(
+                format!(
+                    "#!/usr/bin/env sh\n{} -jar server.jar -nogui",
+                    java_path.to_str().unwrap()
+                )
+                .as_bytes(),
+            )
+            .await?;
 
-        let mut perms = file.metadata().await?.permissions();
-        perms.set_mode(0o755); // same as chmod +x
-        fs::set_permissions(path, perms)?;
+            let mut perms = file.metadata().await?.permissions();
+            perms.set_mode(0o755); // same as chmod +x
+            fs::set_permissions(path, perms)?;
+        }
     } else {
         return Err(Error::Other("unsupported OS".to_string()));
     }
