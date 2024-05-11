@@ -36,7 +36,7 @@ pub enum Distribution {
 }
 
 pub async fn download_file(url: &str) -> Result<Bytes> {
-    let req = reqwest::get(url).await?;
+    let req = reqwest::get(url).await?.error_for_status()?;
 
     if let Some(file_size) = req.content_length() {
         let pb = ProgressBar::new(file_size);
@@ -50,7 +50,7 @@ pub async fn download_file(url: &str) -> Result<Bytes> {
         while let Some(chunk) = stream.next().await {
             let bytes = chunk?.to_vec();
             pb.inc(bytes.len() as u64);
-            content.extend(bytes)
+            content.extend(bytes);
         }
         pb.finish_with_message("{msg} done downloading");
         Ok(Bytes::from(content))

@@ -33,7 +33,6 @@ impl Vanilla {
         let url = gjson::get(&version_info, "downloads.server.url")
             .str()
             .to_owned();
-        assert!(!url.is_empty());
         sp.stop_and_persist("✔", "Finished downloading version info".into());
 
         Ok(Self { download_url: url })
@@ -48,7 +47,7 @@ impl Vanilla {
 
     async fn get_versions() -> Result<VersionList> {
         let url = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
-        let res = reqwest::get(url).await?;
+        let res = reqwest::get(url).await?.error_for_status()?;
         let body = res.text().await?;
         let ver = serde_json::from_str(&body)?;
         Ok(ver)

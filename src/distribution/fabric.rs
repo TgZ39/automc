@@ -70,7 +70,7 @@ impl Fabric {
 
     async fn get_versions() -> Result<VersionList> {
         let url = "https://meta.fabricmc.net/v2/versions/";
-        let res = reqwest::get(url).await?;
+        let res = reqwest::get(url).await?.error_for_status()?;
         let body = res.text().await?;
         let ver = serde_json::from_str(&body)?;
         Ok(ver)
@@ -78,7 +78,7 @@ impl Fabric {
 
     async fn get_loaders() -> Result<Vec<LoaderInfo>> {
         let url = "https://meta.fabricmc.net/v2/versions/loader";
-        let res = reqwest::get(url).await?;
+        let res = reqwest::get(url).await?.error_for_status()?;
         let body = res.text().await?;
         let ver = serde_json::from_str(&body)?;
         Ok(ver)
@@ -86,7 +86,7 @@ impl Fabric {
 
     async fn get_installers() -> Result<Vec<InstallerInfo>> {
         let url = "https://meta.fabricmc.net/v2/versions/installer";
-        let res = reqwest::get(url).await?;
+        let res = reqwest::get(url).await?.error_for_status()?;
         let body = res.text().await?;
         let ver = serde_json::from_str(&body)?;
         Ok(ver)

@@ -50,7 +50,7 @@ impl Paper {
 
     async fn get_versions() -> Result<VersionList> {
         let url = "https://api.papermc.io/v2/projects/paper";
-        let res = reqwest::get(url).await?;
+        let res = reqwest::get(url).await?.error_for_status()?;
         let body = res.text().await?;
         let ver = serde_json::from_str(&body)?;
         Ok(ver)
@@ -61,7 +61,7 @@ impl Paper {
             "https://api.papermc.io/v2/projects/paper/versions/{}/builds",
             version
         );
-        let res = reqwest::get(url).await?;
+        let res = reqwest::get(url).await?.error_for_status()?;
         let body = res.text().await?;
         let builds = serde_json::from_str::<BuildList>(&body)?;
 

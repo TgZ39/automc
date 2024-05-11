@@ -24,7 +24,7 @@ impl Purpur {
 
     async fn get_versions() -> Result<VersionList> {
         let url = "https://api.purpurmc.org/v2/purpur/";
-        let res = reqwest::get(url).await?;
+        let res = reqwest::get(url).await?.error_for_status()?;
         let body = res.text().await?;
         let ver = serde_json::from_str(&body)?;
         Ok(ver)
