@@ -35,6 +35,7 @@ async fn main() -> Result<()> {
         Distribution::Velocity => Velocity::new().await?.install(&dir).await?,
         Distribution::Purpur => Purpur::new().await?.install(&dir).await?,
         Distribution::Fabric => Fabric::new().await?.install(&dir).await?,
+        Distribution::Vanilla => Vanilla::new().await?.install(&dir).await?,
     };
     install_eula(&dir).await?;
 

@@ -15,13 +15,15 @@ pub use fabric::Fabric;
 pub use folia::Folia;
 pub use paper::Paper;
 pub use purpur::Purpur;
+pub use vanilla::Vanilla;
 pub use velocity::Velocity;
 
-pub mod fabric;
-pub mod folia;
-pub mod paper;
-pub mod purpur;
-pub mod velocity;
+mod fabric;
+mod folia;
+mod paper;
+mod purpur;
+mod vanilla;
+mod velocity;
 
 #[derive(Debug, Display, Deserialize, EnumIter, Copy, Clone)]
 pub enum Distribution {
@@ -30,6 +32,7 @@ pub enum Distribution {
     Velocity,
     Purpur,
     Fabric,
+    Vanilla,
 }
 
 pub async fn download_file(url: &str) -> Result<Bytes> {
