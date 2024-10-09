@@ -1,4 +1,5 @@
 use crate::args::Args;
+use crate::config::Config;
 use crate::distribution::*;
 use clap::Parser;
 use error::*;
@@ -11,21 +12,28 @@ mod distribution;
 mod error;
 mod java;
 
+mod config;
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
+    let mut config = Config::load()?;
 
-    let dir = Text::new("Select directory").prompt()?;
-    let dir = PathBuf::from(dir);
+    let dir: PathBuf = Text::new("Select directory").prompt()?.into();
 
     let options = Distribution::iter().collect();
     let distribution = Select::new("Select distribution", options).prompt()?;
 
-    if !Confirm::new("Do you accept the EULA? (https://www.minecraft.net/eula)")
-        .with_default(true)
-        .prompt()?
-    {
-        return Ok(());
+    if !config.accepted_eula {
+        if !Confirm::new("Do you accept the EULA? (https://www.minecraft.net/eula)")
+            .with_default(true)
+            .prompt()?
+        {
+            return Ok(());
+        } else {
+            config.accepted_eula = true;
+            config.save()?;
+        }
     }
 
     match distribution {

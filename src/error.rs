@@ -11,5 +11,6 @@ pub enum Error {
     Inquire(#[from] inquire::InquireError),
     SerdeJson(#[from] serde_json::Error),
     Encoding(#[from] std::string::FromUtf8Error),
+    Config(#[from] confy::ConfyError),
     Other(String),
 }

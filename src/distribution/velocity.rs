@@ -3,10 +3,10 @@ use crate::distribution::{download_file, install_eula, install_server_jar, insta
 use crate::error::*;
 use crate::java::installed_versions;
 use inquire::Select;
-use itertools::Itertools;
 use serde::Deserialize;
 use spinners::{Spinner, Spinners};
 use std::path::PathBuf;
+use itertools::Itertools;
 use strum::Display;
 
 pub struct Velocity {
