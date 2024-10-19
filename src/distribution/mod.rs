@@ -105,9 +105,12 @@ pub async fn install_start_script(path: &PathBuf, java_path: &Path) -> Result<()
     } else if cfg!(unix) {
         #[cfg(target_os = "linux")]
         {
+            println!("pre everything");
             use std::os::unix::fs::PermissionsExt;
             path.push("start.sh");
+            println!("after path push");
             let mut file = File::create(&path).await?;
+            println!("after file create");
             file.write_all(
                 format!(
                     "#!/usr/bin/env sh\n{} -jar server.jar -nogui",
@@ -116,10 +119,12 @@ pub async fn install_start_script(path: &PathBuf, java_path: &Path) -> Result<()
                 .as_bytes(),
             )
             .await?;
+            println!("after file write");
 
             let mut perms = file.metadata().await?.permissions();
             perms.set_mode(0o755); // same as chmod +x
             fs::set_permissions(path, perms)?;
+            println!("after perms");
         }
     } else {
         return Err(Error::Other("unsupported OS".to_string()));

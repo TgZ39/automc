@@ -8,11 +8,9 @@ use std::path::PathBuf;
 use strum::IntoEnumIterator;
 
 mod args;
+mod config;
 mod distribution;
 mod error;
-mod java;
-
-mod config;
 
 #[tokio::main]
 async fn main() -> Result<()> {

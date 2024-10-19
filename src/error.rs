@@ -12,5 +12,6 @@ pub enum Error {
     SerdeJson(#[from] serde_json::Error),
     Encoding(#[from] std::string::FromUtf8Error),
     Config(#[from] confy::ConfyError),
+    JavaLocator(#[from] java_locator::errors::JavaLocatorError),
     Other(String),
 }

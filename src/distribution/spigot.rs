@@ -1,12 +1,11 @@
 use crate::args::Args;
 use crate::distribution::{install_eula, install_start_script};
 use crate::error::*;
-use crate::java::installed_versions;
 use bytes::Bytes;
 use futures_util::future::join3;
 use futures_util::StreamExt;
 use indicatif::{ProgressBar, ProgressStyle};
-use inquire::{Select, Text};
+use inquire::Text;
 use spinners::{Spinner, Spinners};
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -51,12 +50,9 @@ impl Spigot {
         let mut build_tools = File::create(&tool_path).await?;
         build_tools.write_all(&bytes).await?;
 
-        let java_path = if let Some(path) = args.java_path {
-            PathBuf::from(&path)
-        } else {
-            let options = installed_versions()?;
-            let java_version = Select::new("Select Java version", options).prompt()?;
-            PathBuf::from(&java_version)
+        let java_path = match args.java_path {
+            Some(java_path) => PathBuf::from(java_path),
+            None => PathBuf::from(java_locator::locate_java_home()?),
         };
 
         // run buildtools

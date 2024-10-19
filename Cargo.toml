@@ -24,3 +24,4 @@ spinners = "4.1"
 clap = { version = "4.5", features = ["derive"] }
 confy = { version = "0.6", features = ["toml", "toml_conf"] }
 gjson = "0.8"
+java-locator = "0.1.7"

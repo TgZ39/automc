@@ -1,7 +1,6 @@
 use crate::args::Args;
 use crate::distribution::{download_file, install_eula, install_server_jar, install_start_script};
 use crate::error::*;
-use crate::java::installed_versions;
 use futures_util::future::join3;
 use inquire::{Confirm, Select};
 use serde::Deserialize;
@@ -104,12 +103,9 @@ impl Fabric {
         install_server_jar(path, &content).await?;
         install_eula(path).await?;
 
-        let java_path = if let Some(path) = args.java_path {
-            PathBuf::from(&path)
-        } else {
-            let options = installed_versions()?;
-            let java_version = Select::new("Select Java version", options).prompt()?;
-            PathBuf::from(&java_version)
+        let java_path = match args.java_path {
+            Some(java_path) => PathBuf::from(java_path),
+            None => PathBuf::from(java_locator::locate_java_home()?),
         };
         install_start_script(path, &java_path).await?;
 
