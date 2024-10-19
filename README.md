@@ -1,33 +1,30 @@
 [![Crates.io Version](https://img.shields.io/crates/v/automc)](https://crates.io/crates/automc)
-[![Crates.io License](https://img.shields.io/crates/l/automc)](./LICENSE)
----
+[![Crates.io License](https://img.shields.io/crates/l/automc)](https://github.com/TgZ39/automc/blob/master/LICENSE)
 
-About
----
-Auto-mc is a small CLI application written in rust
-that downloads and installs Minecraft server software automatically.
+# automc
 
-Installation
----
-Run
-```shell
+A CLI tool for downloading and setting up Minecraft servers with different distributions. These are the currently supported distributions:
+- Vanilla
+- Fabric
+- Folia
+- Paper
+- Purpur
+- Velocity
+- Spigot (Experimental)
+
+
+## Installation
+
+Via command line:
+
+```sh
 cargo install automc
 ```
+## Usage
 
-Usage
----
-Open a terminal and run `automc`.
+Run `automc` in terminal.
 
-**Options:**
-```
-Usage: automc [OPTIONS]
+## License
 
-Options:
-  -j, --java-path <JAVA_PATH>  Supply custom Java path
-  -h, --help                   Print help
-  -V, --version                Print version
-```
+This project is licensed under [GNU General Public License v3.0 only](https://spdx.org/licenses/GPL-3.0-only.html).
 
-License
----
-This project is licensed under the [GNU General Public License, Version 3.0](https://www.gnu.org/licenses/gpl-3.0).
