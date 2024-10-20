@@ -1,13 +1,10 @@
-use crate::args::Args;
-use crate::distribution::{install_eula, install_start_script};
 use crate::error::*;
 use bytes::Bytes;
-use futures_util::future::join3;
 use futures_util::StreamExt;
 use indicatif::{ProgressBar, ProgressStyle};
 use inquire::Text;
 use spinners::{Spinner, Spinners};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::Command;
 use tokio::fs;
 use tokio::fs::File;
@@ -21,14 +18,16 @@ impl Spigot {
     pub async fn new() -> Result<Self> {
         let version;
         loop {
-            let ver = Text::new("Select version").prompt()?;
+            let ver = Text::new("Select version")
+                .with_help_message("eg. 1.21.1")
+                .prompt()?;
 
             let mut sp = Spinner::new(Spinners::Dots, "Validating version".into());
             if !Self::check_version(&ver).await? {
                 sp.stop_with_message("Version is invalid".to_string());
                 continue;
             }
-            sp.stop_with_message("Successfully validated version".to_string());
+            sp.stop_and_persist("✔", "Successfully validated version".to_string());
             version = ver;
             break;
         }
@@ -36,10 +35,10 @@ impl Spigot {
         Ok(Self { version })
     }
 
-    pub async fn install(&self, path: &PathBuf, args: Args) -> Result<()> {
+    pub async fn install(&self, path: &Path, java_path: &Path) -> Result<()> {
         // download buildtools
         let bytes = Self::download_build_tools().await?;
-        let mut build_path = path.clone();
+        let mut build_path = path.to_path_buf();
         build_path.push("build_cache");
 
         fs::create_dir_all(&build_path).await?;
@@ -49,11 +48,6 @@ impl Spigot {
         tool_path.push("buildtools.jar");
         let mut build_tools = File::create(&tool_path).await?;
         build_tools.write_all(&bytes).await?;
-
-        let java_path = match args.java_path {
-            Some(java_path) => PathBuf::from(java_path),
-            None => PathBuf::from(java_locator::locate_java_home()?),
-        };
 
         // run buildtools
         let mut sp = Spinner::new(
@@ -72,7 +66,7 @@ impl Spigot {
             // SCARY
             // delete build cache
             fs::remove_dir_all(&build_path).await?;
-            sp.stop_with_message("Finished deleting temp files".to_string());
+            sp.stop_and_persist("✔", "Finished deleting temp files".to_string());
 
             let err = String::from_utf8(output.stderr)?;
             return Err(Error::Other(format!(
@@ -80,7 +74,7 @@ impl Spigot {
                 err
             )));
         }
-        sp.stop_with_message("Finished building".to_string());
+        sp.stop_and_persist("✔", "Finished building server.jar".to_string());
 
         let mut server_path = build_path.clone();
         server_path.push(format!("spigot-{}.jar", self.version));
@@ -89,23 +83,16 @@ impl Spigot {
             return Err(Error::Other("Error while executing BuildTools".to_string()));
         }
 
-        let mut new_path = path.clone();
+        let mut new_path = path.to_path_buf();
         new_path.push("server.jar");
         fs::copy(server_path, new_path).await?;
 
         let mut sp = Spinner::new(Spinners::Dots, "Deleting temp files...".to_string());
         // SCARY
         // delete build cache
-        let del = fs::remove_dir_all(&build_path);
-        let start = install_start_script(path, &java_path);
-        let eula = install_eula(path);
+        fs::remove_dir_all(&build_path).await?;
 
-        let res = join3(del, start, eula).await;
-        res.0?;
-        res.1?;
-        res.2?;
-
-        sp.stop_with_message("Finished deleting temp files".to_string());
+        sp.stop_and_persist("✔", "Finished deleting temp files".to_string());
 
         Ok(())
     }

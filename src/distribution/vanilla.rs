@@ -1,11 +1,10 @@
-use crate::args::Args;
-use crate::distribution::{download_file, install_eula, install_server_jar, install_start_script};
+use crate::distribution::{download_file, install_server_jar};
 use crate::error::*;
 use inquire::{Confirm, Select};
 use serde::Deserialize;
 use spinners::{Spinner, Spinners};
 use std::fmt::{Display, Formatter};
-use std::path::PathBuf;
+use std::path::Path;
 
 pub struct Vanilla {
     download_url: String,
@@ -39,16 +38,9 @@ impl Vanilla {
         Ok(Self { download_url: url })
     }
 
-    pub async fn install(&self, path: &PathBuf, args: Args) -> Result<()> {
+    pub async fn install(&self, path: &Path) -> Result<()> {
         let bytes = download_file(&self.download_url, "server.jar").await?;
         install_server_jar(path, &bytes).await?;
-        install_eula(path).await?;
-
-        let java_path = match args.java_path {
-            Some(java_path) => PathBuf::from(java_path),
-            None => PathBuf::from(java_locator::locate_java_home()?),
-        };
-        install_start_script(path, &java_path).await?;
 
         Ok(())
     }

@@ -1,10 +1,9 @@
-use crate::args::Args;
-use crate::distribution::{download_file, install_eula, install_server_jar, install_start_script};
+use crate::distribution::{download_file, install_server_jar};
 use crate::error::*;
 use inquire::Select;
 use serde::Deserialize;
 use spinners::{Spinner, Spinners};
-use std::path::PathBuf;
+use std::path::Path;
 
 pub struct Purpur {
     version: String,
@@ -31,7 +30,7 @@ impl Purpur {
         Ok(ver)
     }
 
-    pub async fn install(&self, path: &PathBuf, args: Args) -> Result<()> {
+    pub async fn install(&self, path: &Path) -> Result<()> {
         let url = format!(
             "https://api.purpurmc.org/v2/purpur/{}/latest/download",
             self.version,
@@ -39,13 +38,6 @@ impl Purpur {
         let content = download_file(&url, "server.jar").await?;
 
         install_server_jar(path, &content).await?;
-        install_eula(path).await?;
-
-        let java_path = match args.java_path {
-            Some(java_path) => PathBuf::from(java_path),
-            None => PathBuf::from(java_locator::locate_java_home()?),
-        };
-        install_start_script(path, &java_path).await?;
 
         Ok(())
     }

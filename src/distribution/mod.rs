@@ -5,7 +5,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use serde::Deserialize;
 use spinners::{Spinner, Spinners};
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use strum::{Display, EnumIter};
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
@@ -65,7 +65,7 @@ pub async fn download_file(url: &str, message: &str) -> Result<Bytes> {
     }
 }
 
-pub async fn install_eula(path: &PathBuf) -> Result<()> {
+pub async fn install_eula(path: &Path) -> Result<()> {
     fs::create_dir_all(path)?;
 
     let mut path = path.to_owned();
@@ -77,7 +77,7 @@ pub async fn install_eula(path: &PathBuf) -> Result<()> {
     Ok(())
 }
 
-pub async fn install_server_jar(path: &PathBuf, bytes: &Bytes) -> Result<()> {
+pub async fn install_server_jar(path: &Path, bytes: &Bytes) -> Result<()> {
     fs::create_dir_all(path)?;
 
     let mut path = path.to_owned();
@@ -89,46 +89,39 @@ pub async fn install_server_jar(path: &PathBuf, bytes: &Bytes) -> Result<()> {
     Ok(())
 }
 
-pub async fn install_start_script(path: &PathBuf, java_path: &Path) -> Result<()> {
+#[cfg(windows)]
+pub async fn install_start_script(path: &Path, java_path: &Path) -> Result<()> {
     let mut path = path.to_owned();
+    path.push("start.bat");
 
-    if cfg!(windows) {
-        #[cfg(target_os = "windows")]
-        {
-            path.push("start.bat");
-            let mut file = File::create(path).await?;
-            file.write_all(
-                format!("\"{}\" -jar server.jar", java_path.to_str().unwrap()).as_bytes(),
-            )
-            .await?;
-        }
-    } else if cfg!(unix) {
-        #[cfg(target_os = "linux")]
-        {
-            println!("pre everything");
-            use std::os::unix::fs::PermissionsExt;
-            path.push("start.sh");
-            println!("after path push");
-            let mut file = File::create(&path).await?;
-            println!("after file create");
-            file.write_all(
-                format!(
-                    "#!/usr/bin/env sh\n{} -jar server.jar -nogui",
-                    java_path.to_str().unwrap()
-                )
-                .as_bytes(),
-            )
-            .await?;
-            println!("after file write");
-
-            let mut perms = file.metadata().await?.permissions();
-            perms.set_mode(0o755); // same as chmod +x
-            fs::set_permissions(path, perms)?;
-            println!("after perms");
-        }
-    } else {
-        return Err(Error::Other("unsupported OS".to_string()));
-    }
+    let mut file = File::create(path).await?;
+    file.write_all(format!("{:?} -jar server.jar", java_path.display()).as_bytes())
+        .await?;
 
     Ok(())
+}
+
+#[cfg(unix)]
+pub fn install_start_script(path: &PathBuf, java_path: Option<&Path>) -> Result<()> {
+    use std::os::unix::fs::PermissionsExt;
+
+    let java_path = match java_path {
+        Some(path) => path.to_str().unwrap().to_string(),
+        None => "java".to_string(),
+    };
+
+    let mut file = File::create(&path).await?;
+    file.write_all(format!("#!/usr/bin/env sh\n{} -jar server.jar", java_path).as_bytes())
+        .await?;
+
+    let mut perms = file.metadata().await?.permissions();
+    perms.set_mode(0o755); // same as chmod +x
+    fs::set_permissions(path, perms)?;
+
+    Ok(())
+}
+
+#[cfg(all(not(unix), not(windows)))]
+pub fn install_start_script(path: &PathBuf, java_path: &Path) -> Result<()> {
+    Err(Error::Other("unsupported OS".to_string()))
 }
