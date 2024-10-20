@@ -9,23 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.3](https://github.com/TgZ39/automc/compare/v0.1.2...v0.1.3) - 2024-10-20
 
+## Added
+- Spigot support (Experimental)
+
 ### Fixed
 
 - fix crash on unix
-- fix failed build on unix
-- improve java detection
+- more robust java detection
 
 ### Other
 
-- Update README.md
-- update README.md
-- improve java detection (again)
-- Update README.md
-- downgrade version for release-plz to notice changes
-- remove java-locator path version
-- improve github workflows
 - update dependencies
-- add missing dependency
-- update dependencies
-- remember EULA accepted
-- add basic spigot support
+- add asciinema to README.md
