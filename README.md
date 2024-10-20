@@ -1,5 +1,8 @@
+[![asciicast](https://asciinema.org/a/HOAHFx5JC3G2CXKk7sbFjoYRf.svg)](https://asciinema.org/a/HOAHFx5JC3G2CXKk7sbFjoYRf)
+
 [![Crates.io Version](https://img.shields.io/crates/v/automc)](https://crates.io/crates/automc)
 [![Crates.io License](https://img.shields.io/crates/l/automc)](https://github.com/TgZ39/automc/blob/master/LICENSE)
+
 # automc
 
 A CLI tool for downloading and setting up Minecraft servers with different distributions. These are the currently supported distributions:
