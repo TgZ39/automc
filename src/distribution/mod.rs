@@ -102,17 +102,18 @@ pub async fn install_start_script(path: &Path, java_path: &Path) -> Result<()> {
 }
 
 #[cfg(unix)]
-pub fn install_start_script(path: &PathBuf, java_path: Option<&Path>) -> Result<()> {
+pub async fn install_start_script(path: &Path, java_path: &Path) -> Result<()> {
     use std::os::unix::fs::PermissionsExt;
 
-    let java_path = match java_path {
-        Some(path) => path.to_str().unwrap().to_string(),
-        None => "java".to_string(),
-    };
-
     let mut file = File::create(&path).await?;
-    file.write_all(format!("#!/usr/bin/env sh\n{} -jar server.jar", java_path).as_bytes())
-        .await?;
+    file.write_all(
+        format!(
+            "#!/usr/bin/env sh\n{:?} -jar server.jar",
+            java_path.display()
+        )
+        .as_bytes(),
+    )
+    .await?;
 
     let mut perms = file.metadata().await?.permissions();
     perms.set_mode(0o755); // same as chmod +x
@@ -122,6 +123,6 @@ pub fn install_start_script(path: &PathBuf, java_path: Option<&Path>) -> Result<
 }
 
 #[cfg(all(not(unix), not(windows)))]
-pub fn install_start_script(path: &PathBuf, java_path: &Path) -> Result<()> {
+pub async fn install_start_script(path: &Path, java_path: &Path) -> Result<()> {
     Err(Error::Other("unsupported OS".to_string()))
 }
