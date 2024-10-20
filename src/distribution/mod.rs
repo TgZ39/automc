@@ -91,6 +91,8 @@ pub async fn install_server_jar(path: &Path, bytes: &Bytes) -> Result<()> {
 
 #[cfg(windows)]
 pub async fn install_start_script(path: &Path, java_path: &Path) -> Result<()> {
+    fs::create_dir_all(path)?;
+
     let mut path = path.to_owned();
     path.push("start.bat");
 
@@ -104,6 +106,11 @@ pub async fn install_start_script(path: &Path, java_path: &Path) -> Result<()> {
 #[cfg(unix)]
 pub async fn install_start_script(path: &Path, java_path: &Path) -> Result<()> {
     use std::os::unix::fs::PermissionsExt;
+
+    fs::create_dir_all(path)?;
+
+    let mut path = path.to_owned();
+    path.push("start.sh");
 
     let mut file = File::create(&path).await?;
     file.write_all(
