@@ -1,6 +1,5 @@
 [![Crates.io Version](https://img.shields.io/crates/v/automc)](https://crates.io/crates/automc)
 [![Crates.io License](https://img.shields.io/crates/l/automc)](https://github.com/TgZ39/automc/blob/master/LICENSE)
-
 # automc
 
 A CLI tool for downloading and setting up Minecraft servers with different distributions. These are the currently supported distributions:
@@ -23,6 +22,18 @@ cargo install automc
 ## Usage
 
 Run `automc` in terminal.
+
+**Options:**
+
+```
+Usage: automc [OPTIONS]
+
+Options:
+  -j, --java-path <JAVA_PATH>  Supply custom Java path
+  -h, --help                   Print help
+  -V, --version                Print version
+```
+
 
 ## License
 
