@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4](https://github.com/TgZ39/automc/compare/v0.1.3...v0.1.4) - 2024-11-12
+
+### Other
+
+- Update thiserror requirement from 1.0 to 2.0
+- Create dependabot.yml
+
 ## [0.1.3](https://github.com/TgZ39/automc/compare/v0.1.2...v0.1.3) - 2024-10-20
 
 ## Added
